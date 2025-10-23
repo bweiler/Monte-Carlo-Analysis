@@ -1,6 +1,20 @@
 import random
 import matplotlib.pyplot as plt
 
+BATTLES = 100000
+
+# Gauss Reaper and Bolt Pistol have minimum range of 12" 
+# Gauss Reaper is typed as rapid fire, so at half distance 6" =< x > 2" it can attack twice
+# Necrons have no melee weapon, the chainsword can attack twice
+
+# Distance constants
+RANGES = {
+    "Ranged Far",
+    "Range Near",
+    "Melee"
+}
+
+# Character 1 - Necron Warrior with Gauss Reaper ranged weapon, no melee weapon
 NECRON_WARRIOR = {
     "MOVEMENT": 5,
     "BS": 3,
@@ -16,6 +30,15 @@ NECRON_WARRIOR = {
     "armor_penetration": 0
 }
 
+NECRON_MELEE = {
+    "range": 1,        
+    "attacks": 1,
+    "skill": 3,         # 3+ to hit
+    "strength": 5,
+    "armor_penetration": 0,
+    "damage": 1
+}
+
 GAUSS_REAPER = {
     "range": 12,        
     "attacks": 2,
@@ -25,6 +48,7 @@ GAUSS_REAPER = {
     "damage": 1
 }
 
+# Character 2 - Assult Intercessor (Space Marine) with Bolt Pistol (ranged weapon) and Chainsword (melee weapon)
 ASSAULT_INTERCESSOR = {
     "MOVEMENT": 6,
     "BS": 3,
@@ -39,6 +63,10 @@ ASSAULT_INTERCESSOR = {
     "OBJECTIVE_CONTROL": 2
 }
 
+CHAINSWORD = {
+
+}
+
 BOLT_PISTOL = {
     "range": 12,        # Inches
     "attacks": 1,
@@ -48,23 +76,30 @@ BOLT_PISTOL = {
     "damage": 1
 }
 
-#    "1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0,"10": 0,"11": 0,"12": 0,"13": 0,"14": 0,"15": 0 }
-
-def roll_dice():
+def roll_dice() -> int:
     return random.randint(1, 6)
 
-def sort_func(arg_val):
+def sort_func(arg_val: str) -> int:
     return int(arg_val[0])
 
-battles = 100000
-
-#Gauss Flayer and Bolt Pistol have a rnage of 12", Gauss Reaper is rapid fire, so at half distance = 6" can attack twice
+def shoot_phase(attacker, attacker_weapon, defender, D6_required) -> int:
+    hit_roll = roll_dice()
+    if hit_roll < attacker.get("BS"):
+        return 0
+    wound_roll = roll_dice()
+    if wound_roll < D6_required:
+        return 0
+    save_throw = roll_dice() + attacker_weapon.get("armor_penetration")
+    if save_throw >= defender.get("SAVE"):
+        return attacker_weapon.get("damage")
+    else:
+        return 0
 
 print(f"Monte Carlo Analysis of a fight between 1 Assault Intercessor (Bolt Pistol plus Chainsword) versus 1 Necron Warrior (Guass Reaper)")
 print(f"The D6 is simulated as random.randint(1, 6), the total Battles are {battles}")
 print(f"NOTE: The percentage died and number of battles converge well enough at 100000 battles (simulations)")
 print(f" ")
-for distance in range(3):
+for distance in RANGES:
     space_marine_wound = ASSAULT_INTERCESSOR.get("WOUNDS")
     necron_wound = NECRON_WARRIOR.get("WOUNDS")
     necron_died = 0
@@ -75,8 +110,11 @@ for distance in range(3):
     necron_bars = {}
     marine_bars = {}
 
-    for number_battles in range(battles):
+    for number_battles in range(BATTLES):
 
+        if space_marine_wound <= 0 and necron_wound <= 0:
+            print(f"Error: Wounds Marine {space_marine_wound} Necron {necron_wound}")
+        
         if space_marine_wound <= 0 or necron_wound <= 0:
             if space_marine_wound <= 0:
                 marine_died += 1
@@ -86,10 +124,10 @@ for distance in range(3):
                     n_battles = 1
                 n_key = str(n_battles)
                 if n_key in marine_bars:
-                     marine_bars[n_key] += 1
+                        marine_bars[n_key] += 1
                 else:
-                     marine_bars.setdefault(n_key,1)
-            else:
+                        marine_bars.setdefault(n_key,1)
+            if necron_wound <= 0:
                 necron_died += 1
                 n_battles = number_battles - old_battles
                 necron_battle_avg += n_battles
@@ -97,80 +135,45 @@ for distance in range(3):
                     n_battles = 1
                 n_key = str(n_battles)
                 if n_key in necron_bars:
-                     necron_bars[n_key] += 1
+                        necron_bars[n_key] += 1
                 else:
-                     necron_bars.setdefault(n_key,1)
-                
+                        necron_bars.setdefault(n_key,1)                
             old_battles = number_battles           
-            if space_marine_wound <= 0 and necron_wound <= 0:
-                print(f"Error: Wounds Marine {space_marine_wound} Necron {necron_wound}")
             space_marine_wound = ASSAULT_INTERCESSOR.get("WOUNDS")
             necron_wound = NECRON_WARRIOR.get("WOUNDS")
-        if (distance == 0 or distance == 1):
-            for i in range(distance + 1):
-                hit_roll = roll_dice()
-                if hit_roll >= NECRON_WARRIOR.get("BS"):
-                    if (GAUSS_REAPER.get("strength") > ASSAULT_INTERCESSOR.get("TOUGHNESS") ):
-                        D6_required = 3
-                        wound_roll = roll_dice()
-                        if wound_roll >= D6_required:
-                            save_throw = roll_dice() + GAUSS_REAPER.get("armor_penetration")
-                            if save_throw >= ASSAULT_INTERCESSOR.get("SAVE"):
-                                space_marine_wound -= GAUSS_REAPER.get("damage")
+
+        if (distance == "Ranged Far" or distance == "Ranged Near"):
+            for i in range(2):
+                space_marine_wound -= shoot_phase(NECRON_WARRIOR,GAUSS_REAPER,ASSAULT_INTERCESSOR,3)
             if (space_marine_wound > 0):
-                hit_roll = roll_dice()
-                if hit_roll >= ASSAULT_INTERCESSOR.get("BS"):
-                    if (BOLT_PISTOL.get("strength") == NECRON_WARRIOR.get("TOUGHNESS") ):
-                        D6_required = 4
-                        wound_roll = roll_dice()
-                        if wound_roll >= D6_required:
-                            save_throw = roll_dice() + BOLT_PISTOL.get("armor_penetration")
-                            if save_throw >= NECRON_WARRIOR.get("SAVE"):
-                                necron_wound -= BOLT_PISTOL.get("damage")
+                necron_wound -= shoot_phase(ASSAULT_INTERCESSOR,BOLT_PISTOL,NECRON_WARRIOR,4)               
         else:
-            hit_roll = roll_dice()
-            if hit_roll >= NECRON_WARRIOR.get("WS"):
-                if (NECRON_WARRIOR.get("STRENGTH") == ASSAULT_INTERCESSOR.get("TOUGHNESS") ):
-                    D6_required = 4
-                    wound_roll = roll_dice()
-                    if wound_roll >= D6_required:
-                        save_throw = roll_dice() + NECRON_WARRIOR.get("armor_penetration")
-                        if save_throw >= ASSAULT_INTERCESSOR.get("SAVE"):
-                            space_marine_wound -= NECRON_WARRIOR.get("DAMAGE")
+            space_marine_wound -= shoot_phase(NECRON_WARRIOR,NECRON_MELEE,ASSAULT_INTERCESSOR,3)
             if (space_marine_wound > 0):
-                for i in range(2):
-                    hit_roll = roll_dice()
-                    if hit_roll >= ASSAULT_INTERCESSOR.get("WS"):
-                        if (ASSAULT_INTERCESSOR.get("STRENGTH") == NECRON_WARRIOR.get("TOUGHNESS") ):
-                            D6_required = 4
-                            wound_roll = roll_dice()
-                            if wound_roll >= D6_required:
-                                save_throw = roll_dice() + ASSAULT_INTERCESSOR.get("armor_penetration")
-                                if save_throw >= NECRON_WARRIOR.get("SAVE"):
-                                    necron_wound -= 1
-        
-    match distance:
-        case 0:
-            print(f"Within range but not less than half: 12 - 7 inches")
-        case 1:
+                necron_wound -= shoot_phase(ASSAULT_INTERCESSOR,CHAINSWORD,NECRON_WARRIOR,4)                      
+
+    if distance == "Ranged Far":
+        print(f"Within range but not less than half: 12 - 7 inches")
+    else:
+        if distance == "Ranged Near":
             print(f"Within half range but not yet melee: 6 - 2 inches, Necrons can shoot twice")
-        case 2:
+        else:
             print(f"Melee distance, Marines have chainsword, can attack twice")
-    print(f"{necron_died} Necron Died {necron_died/battles*100:.2f}% of total battles, average battles to kill {necron_battle_avg/necron_died:.1f}")
-    print(f"{marine_died} Marine Died {marine_died/battles*100:.2f}% of total battles, average battles to kill {marine_battle_avg/marine_died:.1f}")
+    print(f"{necron_died} Necron Died {necron_died/BATTLES*100:.2f}% of total battles, average battles to kill {necron_battle_avg/necron_died:.1f}")
+    print(f"{marine_died} Marine Died {marine_died/BATTLES*100:.2f}% of total battles, average battles to kill {marine_battle_avg/marine_died:.1f}")
     necron_bars_s = dict(sorted(necron_bars.items(),key=sort_func))
     plt.bar(range(len(necron_bars_s)), list(necron_bars_s.values()), align='center')
     plt.xticks(range(len(necron_bars_s)), list(necron_bars_s.keys()))
     plt.xlabel("Battles")
     plt.ylabel("Died")
-    plt.title(f"In {battles} Number of Necrons Died")
+    plt.title(f"In {BATTLES} Number of Necrons Died")
     plt.show()
     marine_bars_s = dict(sorted(marine_bars.items(),key=sort_func))
     plt.bar(range(len(marine_bars_s)), list(marine_bars_s.values()), align='center')
     plt.xticks(range(len(marine_bars_s)), list(marine_bars_s.keys()))
     plt.xlabel("Battles")
     plt.ylabel("Died")
-    plt.title(f"In {battles} Number of Marines Died")
+    plt.title(f"In {BATTLES} Number of Marines Died")
     plt.show()
     print(" ")
 
