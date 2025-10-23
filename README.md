@@ -1,29 +1,19 @@
-The law of large numbers states that individual random events converge on a set percentage based on reptition. For example, a coin toss will converge more and more perfectly on 50/50 with a greater number of trials. 
+The law of large numbers states that individual random events converge on a set percentage through a large number of trials.
 
-This was also the motivation for Markov Processes, where the underlying probablities are not completely random.
+For example, tossing a coin. The greater the number of tosses, the more the avaerge result will converge on 50/50. 
 
-This application is a battle between two game characters with different parameters. One is more powerful with stronger attacks and greater health. The take turns attacking, using as many battles (rounds) as neccessary for one to perish.
+In combat gaming, parameters such as character health, attack power, number of attacks, aiming ability, distance, etc. create a probabilistic outcome.
 
-Since the parameters change based on distance bewteen them (far, middle - ranged, close - melee), three sets of parameters are simulated.
+This application simulates a battle between two game characters, plus random dice rolls. After a large enough number of battles (trials), the win / loss percentages will converge. 
 
-For example, at 12" ranged attacks, the number of deaths converges approximatel-minmal at 100000 battles: Character 1 at 15.32%, and characater 2 at 7.66%
+A practical use could be balancing characters for gameplay (challenging but not frustrating).
 
-Greater numnber of battles only refines in the percentage in the hundreths, with some variance.
+The parameters for the characters change based on distance, i.e. ranged attacks (gun, arrow) versus melee attacks (sword, mace). 
 
-**Sample:**
+In this case, three ranges are used. The ranges have different parameters, and this demonstrates how they change outcomes. A user can study parameters and develop a strategy.
 
-Monte Carlo Analysis of a fight between 1 Assault Intercessor (Bolt Pistol plus Chainsword) versus 1 Necron Warrior (Guass Reaper)<br>
-The D6 is simulated as random.randint(1, 6), the total Battles are 100000<br>
-NOTE: The percentage died and number of battles converge well enough at 100000 battles (simulations)<br>
+In testing, the number of trials to converge will be tradeoff of accuracy versus time or compute resources.
 
-Within range but not less than half: 12 - 7 inches<br>
-15318 **Necron Died 15.32%** of total battles, average battles to kill 3.7<br>
-7655 **Marine Died 7.66%** of total battles, average battles to kill 5.7
- 
-Within half range but not yet melee: 6 - 2 inches, Necrons can shoot twice<br>
-13718 Necron Died 13.72% of total battles, average battles to kill 2.6<br>
-17642 Marine Died 17.64% of total battles, average battles to kill 3.7
- 
-Melee distance, Marines have chainsword, can attack twice<br>
-19606 Necron Died 19.61% of total battles, average battles to kill 3.3<br>
-6977 Marine Died 6.98% of total battles, average battles to kill 5.2
+**Sample Output:**
+
+
