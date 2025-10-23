@@ -64,7 +64,12 @@ ASSAULT_INTERCESSOR = {
 }
 
 CHAINSWORD = {
-
+    "range": 12,        # Inches
+    "attacks": 1,
+    "skill": 3,         # 3+ to hit
+    "strength": 4,
+    "armor_penetration": 0,
+    "damage": 1
 }
 
 BOLT_PISTOL = {
@@ -96,7 +101,7 @@ def shoot_phase(attacker, attacker_weapon, defender, D6_required) -> int:
         return 0
 
 print(f"Monte Carlo Analysis of a fight between 1 Assault Intercessor (Bolt Pistol plus Chainsword) versus 1 Necron Warrior (Guass Reaper)")
-print(f"The D6 is simulated as random.randint(1, 6), the total Battles are {battles}")
+print(f"The D6 is simulated as random.randint(1, 6), the total Battles are {BATTLES}")
 print(f"NOTE: The percentage died and number of battles converge well enough at 100000 battles (simulations)")
 print(f" ")
 for distance in RANGES:
