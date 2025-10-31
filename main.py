@@ -8,11 +8,11 @@ BATTLES = 100000
 # Souless Robots have no melee weapon, but the Space soldier knifesword can attack twice
 
 # Distance constants
-RANGES = {
-    "Ranged Far (14 - 8 inches)",
-    "Range Near (7 - 2 inches)",
-    "Melee (within 1 inch)"
-}
+RANGES = (
+    (0, "Ranged Far (14 - 8 inches)"),
+    (1, "Range Near (7 - 2 inches)"),
+    (2, "Melee (within 1 inch)")
+)
 
 # Character 1 - Souless Robot
 SOULESS_ROBOT = {
@@ -122,21 +122,22 @@ def attack_phase(attacker, attacker_weapon, defender) -> int:
 
 def main() -> None:
       
-    print(f"Monte Carlo Analysis of a fight between 1 Space Soldier (Machine Pistol plus Knifesword) versus 1 Souless Robot (Guass Rifle)")
-    print(f"The D6 is simulated as random.randint(1, 6), the total Battles are {BATTLES}")
-    print(f"NOTE: The percentage died and number of battles converge well enough at 100000 battles (simulations)")
     print(f" ")
-    for distance in RANGES:
+    print(f"Binomial simulation of deaths between a Space Soldier (Machine Pistol plus Knifesword) and a Souless Robot (Guass Rifle)\nBattle Simulations: {BATTLES}")
+    print(f" ")
+    for i_index, distance_text in RANGES:
         space_soldier_wound = SPACE_SOLDIER.get("WOUNDS")
         robot_wound = SOULESS_ROBOT.get("WOUNDS")
         robot_died = 0
         soldier_died = 0
         old_battles = 0
         soldier_battle_avg = 0
-        robot_battle_avg = 0  
+        robot_battle_avg = 0 
+        peak_soldier = 0
+        peak_robot = 0 
         robot_bars = {}
         soldier_bars = {}
-
+        
         for number_battles in range(BATTLES):
 
             if space_soldier_wound <= 0 and robot_wound <= 0:
@@ -164,47 +165,79 @@ def main() -> None:
                     if n_key in robot_bars:
                             robot_bars[n_key] += 1
                     else:
-                            robot_bars.setdefault(n_key,1)                
+                            robot_bars.setdefault(n_key,1)
                 old_battles = number_battles           
                 space_soldier_wound = SPACE_SOLDIER.get("WOUNDS")
                 robot_wound = SOULESS_ROBOT.get("WOUNDS")
 
 
-            if distance == "Ranged Far (14 - 8 inches)":
+            if i_index == 0:
                 space_soldier_wound -= attack_phase(SOULESS_ROBOT,GAUSS_RIFLE,SPACE_SOLDIER)
                 if (space_soldier_wound > 0):
                     robot_wound -= attack_phase(SPACE_SOLDIER,MACHINE_PISTOL,SOULESS_ROBOT)               
-                 
-            if distance == "Range Near (7 - 2 inches)":
-                for i in range(GAUSS_RIFLE.get("ATTACK")):
-                    space_soldier_wound -= attack_phase(SOULESS_ROBOT,GAUSS_RIFLE,SPACE_SOLDIER)
-                if (space_soldier_wound > 0):
-                    robot_wound -= attack_phase(SPACE_SOLDIER,MACHINE_PISTOL,SOULESS_ROBOT)               
+            else:     
+                if i_index == 1:
+                    for i in range(GAUSS_RIFLE.get("ATTACK")):
+                        space_soldier_wound -= attack_phase(SOULESS_ROBOT,GAUSS_RIFLE,SPACE_SOLDIER)
+                    if (space_soldier_wound > 0):
+                        robot_wound -= attack_phase(SPACE_SOLDIER,MACHINE_PISTOL,SOULESS_ROBOT)               
+                else:
+                    space_soldier_wound -= attack_phase(SOULESS_ROBOT,SR_MELEE,SPACE_SOLDIER)
+                    if (space_soldier_wound > 0):
+                        for i in range(KNIFESWORD.get("ATTACK")):
+                            robot_wound -= attack_phase(SPACE_SOLDIER,KNIFESWORD,SOULESS_ROBOT)                      
 
-            if distance == "Melee (within 1 inch)":
-                space_soldier_wound -= attack_phase(SOULESS_ROBOT,SR_MELEE,SPACE_SOLDIER)
-                if (space_soldier_wound > 0):
-                    for i in range(KNIFESWORD.get("ATTACK")):
-                        robot_wound -= attack_phase(SPACE_SOLDIER,KNIFESWORD,SOULESS_ROBOT)                      
-
-        print(f"{distance}")
-        print(f"{robot_died} Robot Died {robot_died/BATTLES*100:.2f}% of total battles, average battles to kill {robot_battle_avg/robot_died:.1f}")
-        print(f"{soldier_died} Soldier Died {soldier_died/BATTLES*100:.2f}% of total battles, average battles to kill {soldier_battle_avg/soldier_died:.1f}")
+        total_deaths = soldier_died + robot_died
+        r_deaths = robot_died / total_deaths * 100.0
+        s_deaths = soldier_died / total_deaths * 100.0
+        print(f"{distance_text}")
         # Create Bar Graph for each character
-        robot_bars_s = dict(sorted(robot_bars.items(),key=sort_func))
-        plt.bar(range(len(robot_bars_s)), list(robot_bars_s.values()), align='center')
+        robot_bars_tmp = {}
+        robot_bars_tmp = dict(sorted(robot_bars.items(),key=sort_func))
+        r_counter = 0
+        r_mean = 0
+        r_tmp = 0
+        for key,value in robot_bars_tmp.items():
+             r_tmp = value/total_deaths
+             r_mean += int(key) * r_tmp
+             robot_bars_tmp[key] = r_tmp
+             r_counter += 1 
+        r_var = 0 
+        for key,value in robot_bars_tmp.items():
+             r_var += ((int(key) - r_mean) ** 2) * value
+        robot_bars_s = {}
+        robot_bars_s = robot_bars_tmp
+        plt.plot(range(len(robot_bars_s)), list(robot_bars_s.values()))
         plt.xticks(range(len(robot_bars_s)), list(robot_bars_s.keys()))
         plt.xlabel("Battles")
-        plt.ylabel("Died")
-        plt.title(f"{distance}\nNumber of Battles it took for A Soldier to Kill a Robot")
-        plt.show()
-        soldier_bars_s = dict(sorted(soldier_bars.items(),key=sort_func))
-        plt.bar(range(len(soldier_bars_s)), list(soldier_bars_s.values()), align='center')
+        plt.ylabel("Probability of Death")
+        plt.title(f"{distance_text}\nProbably of Number of Battles for Soldier to Kill a Robot\n{r_deaths:.1f}% Mean: {r_mean:.2f} var: {r_var:.2f}")
+        plt.savefig(f"{distance_text} Robot.png", dpi=300, bbox_inches='tight')
+        plt.clf()
+#       plt.show()
+        soldier_bars_tmp = {}
+        soldier_bars_tmp = dict(sorted(soldier_bars.items(),key=sort_func))
+        s_counter = 0
+        s_mean = 0
+        s_tmp = 0
+        for key,value in soldier_bars_tmp.items():
+             s_tmp = value/total_deaths
+             s_mean += int(key) * s_tmp
+             soldier_bars_tmp[key] = s_tmp
+             s_counter += 1 
+        s_var = 0
+        for key,value in robot_bars_tmp.items():
+             s_var += ((int(key) - s_mean) ** 2) * value
+        print(f"Robot Deaths:\t{r_deaths:.1f}% Battles Mean: {r_mean:.2f} var: {r_var:.2f}\nSoldier Deaths:\t{s_deaths:.1f}% Battles Mean: {s_mean:.2f} var: {s_var:.2f}")
+        soldier_bars_s = soldier_bars_tmp
+        plt.plot(range(len(soldier_bars_s)), list(soldier_bars_s.values()))
         plt.xticks(range(len(soldier_bars_s)), list(soldier_bars_s.keys()))
         plt.xlabel("Battles")
-        plt.ylabel("Died")
-        plt.title(f"{distance}\nNumber of of battles it took for Robot to Kill a Soldier")
-        plt.show()
+        plt.ylabel("Probability of Death")
+        plt.title(f"{distance_text}\nProbably of Number of Battles for Robot to Kill a Soldier\n{s_deaths:.1f}% Mean: {s_mean:.2f} var: {s_var:.2f}")
+        plt.savefig(f"{distance_text} Soldier.png", dpi=300, bbox_inches='tight')
+        plt.clf()
+#       plt.show()
         print(" ")
 
                     

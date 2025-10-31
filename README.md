@@ -16,4 +16,18 @@ In testing, the number of trials to converge will be tradeoff of accuracy versus
 
 **Sample Output:**
 
+Binomial simulation of deaths between a Space Soldier (Machine Pistol plus Knifesword) and a Souless Robot (Guass Rifle)
+Battle Simulations: 100000
 
+Ranged Far (14 - 8 inches)
+Robot Deaths:   67.2% Battles Mean: 3.66 var: 16.18
+Soldier Deaths: 32.8% Battles Mean: 2.69 var: 19.13
+ 
+Range Near (7 - 2 inches)
+Robot Deaths:   44.8% Battles Mean: 1.67 var: 5.86
+Soldier Deaths: 55.2% Battles Mean: 2.95 var: 4.24
+ 
+Melee (within 1 inch)
+Robot Deaths:   73.5% Battles Mean: 2.41 var: 5.46
+Soldier Deaths: 26.5% Battles Mean: 1.39 var: 7.53
+ 
