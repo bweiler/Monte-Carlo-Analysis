@@ -1,9 +1,11 @@
-This is a simulation of a game of comabt between two characters. The outcome of the game is the death / survival of one characeter. Each character had numerical parameters such as 
-attack power and health. Dice throw adds randomness. A turn is a called battle.
+This is a simulation of a game of comabt between two characters. The outcome of the game is the death / survival of one character. Each character had numerical parameters such as 
+attack power and health. Dice throws add randomness. A turn is a called battle.
 
 The program records the battles, and number of deaths. These are normalized to create probabilities. 
 
-The characters approach each other, amd parameters change based othe distance between them - ranged attacks (gun, arrow) versus melee attacks (sword, mace). I use three distances.
+The characters approach one another, amd the parameters change based on the distance between them - ranged attacks (gun, arrow) versus melee attacks (sword, mace). 
+
+Three seperate distances are used. The program outputs figures from matplotlib (line graphs)
 
 **Sample Output:**
 
