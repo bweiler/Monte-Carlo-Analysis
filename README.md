@@ -1,4 +1,4 @@
-This is a simulation of a game of comabt between two characters. The outcome of the game is the death / survival of one character. Each character had numerical parameters such as 
+This is a simulation of a game of combat between two characters. The outcome of the game is the death / survival of one character. Each character had numerical parameters such as 
 attack power and health. Dice throws add randomness. A turn is a called battle.
 
 The program records the battles, and number of deaths. These are normalized to create probabilities. 

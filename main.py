@@ -89,30 +89,33 @@ MACHINE_PISTOL = {
 def roll_dice() -> int:
     return random.randint(1, 6)
 
-# Sort function for bar graph - overrides default sort to take string length into account, i.e. default sort incorrectly, "1", "10", "11" ... "2"
+# Sort function for bar graph - overrides default sort to take string length into account.
+# Default sorts incorrectly, "1", "10" ... "2", should be "1","2" ... "10"
 def sort_func(arg_val: str) -> int:
     return int(arg_val[0])
 
 # Attack Damage Calculation
+# First argument unused, but may use later
 def attack_phase(attacker, attacker_weapon, defender) -> int:
     hit_roll = roll_dice()
+    wound_threshold = 0
     if hit_roll < attacker_weapon.get("SKILL"):
         return 0
     if attacker_weapon.get("STRENGTH") > defender.get("TOUGHNESS"):
         if attacker_weapon.get("STRENGTH") >= 2*defender.get("TOUGHNESS"):
-             D6_required = 2
+             wound_threshold = 2
         else:
-             D6_required = 3
+             wound_threshold = 3
     else:
         if attacker_weapon.get("STRENGTH") < defender.get("TOUGHNESS"):
             if attacker_weapon.get("STRENGTH")*2 >= defender.get("TOUGHNESS"):
-                D6_required = 6
+                wound_threshold = 6
             else:
-                D6_required = 5
+                wound_threshold = 5
         else:
-             D6_required = 4
+             wound_threshold = 4
     wound_roll = roll_dice()
-    if wound_roll < D6_required:
+    if wound_roll < wound_threshold:
         return 0
     save_throw = roll_dice() + attacker_weapon.get("ARMOR_PENETRATION")
     if save_throw >= defender.get("SAVE"):
@@ -120,6 +123,7 @@ def attack_phase(attacker, attacker_weapon, defender) -> int:
     else:
         return 0
 
+# MAIN
 def main() -> None:
       
     print(f" ")
@@ -131,10 +135,6 @@ def main() -> None:
         robot_died = 0
         soldier_died = 0
         old_battles = 0
-        soldier_battle_avg = 0
-        robot_battle_avg = 0 
-        peak_soldier = 0
-        peak_robot = 0 
         robot_bars = {}
         soldier_bars = {}
         
@@ -147,7 +147,6 @@ def main() -> None:
                 if space_soldier_wound <= 0:
                     soldier_died += 1
                     n_battles = number_battles - old_battles
-                    soldier_battle_avg += n_battles
                     if n_battles == 0:
                         n_battles = 1
                     n_key = str(n_battles)
@@ -158,7 +157,6 @@ def main() -> None:
                 if robot_wound <= 0:
                     robot_died += 1
                     n_battles = number_battles - old_battles
-                    robot_battle_avg += n_battles
                     if n_battles == 0:
                         n_battles = 1
                     n_key = str(n_battles)
@@ -190,18 +188,19 @@ def main() -> None:
         total_deaths = soldier_died + robot_died
         r_deaths = robot_died / total_deaths * 100.0
         s_deaths = soldier_died / total_deaths * 100.0
-        print(f"{distance_text}")
+  
         # Create Bar Graph for each character
+        # Robot Figures (graphs)
         robot_bars_tmp = {}
         robot_bars_tmp = dict(sorted(robot_bars.items(),key=sort_func))
-        r_counter = 0
+        r_counter = 0 #range of values, may use later, i.e. len()
         r_mean = 0
         r_tmp = 0
         for key,value in robot_bars_tmp.items():
              r_tmp = value/total_deaths
              r_mean += int(key) * r_tmp
              robot_bars_tmp[key] = r_tmp
-             r_counter += 1 
+             r_counter += 1                 
         r_var = 0 
         for key,value in robot_bars_tmp.items():
              r_var += ((int(key) - r_mean) ** 2) * value
@@ -214,7 +213,8 @@ def main() -> None:
         plt.title(f"{distance_text}\nProbably of Number of Battles for Soldier to Kill a Robot\n{r_deaths:.1f}% Mean: {r_mean:.2f} var: {r_var:.2f}")
         plt.savefig(f"Graph_Output\\{distance_text}_Robot.png", dpi=300, bbox_inches='tight')
         plt.clf()
-#       plt.show()
+
+        # Soldier Figures (graphs)
         soldier_bars_tmp = {}
         soldier_bars_tmp = dict(sorted(soldier_bars.items(),key=sort_func))
         s_counter = 0
@@ -228,7 +228,6 @@ def main() -> None:
         s_var = 0
         for key,value in robot_bars_tmp.items():
              s_var += ((int(key) - s_mean) ** 2) * value
-        print(f"Robot Deaths:\t{r_deaths:.1f}% Battles Mean: {r_mean:.2f} var: {r_var:.2f}\nSoldier Deaths:\t{s_deaths:.1f}% Battles Mean: {s_mean:.2f} var: {s_var:.2f}")
         soldier_bars_s = soldier_bars_tmp
         plt.plot(range(len(soldier_bars_s)), list(soldier_bars_s.values()))
         plt.xticks(range(len(soldier_bars_s)), list(soldier_bars_s.keys()))
@@ -237,7 +236,9 @@ def main() -> None:
         plt.title(f"{distance_text}\nProbably of Number of Battles for Robot to Kill a Soldier\n{s_deaths:.1f}% Mean: {s_mean:.2f} var: {s_var:.2f}")
         plt.savefig(f"Graph_Output\\{distance_text}_Soldier.png", dpi=300, bbox_inches='tight')
         plt.clf()
-#       plt.show()
+        # Console Output
+        print(f"{distance_text}")
+        print(f"Robot Deaths:\t{r_deaths:.1f}% Battles Mean: {r_mean:.2f} var: {r_var:.2f}\nSoldier Deaths:\t{s_deaths:.1f}% Battles Mean: {s_mean:.2f} var: {s_var:.2f}")
         print(" ")
 
                     
