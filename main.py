@@ -212,7 +212,7 @@ def main() -> None:
         plt.xlabel("Battles")
         plt.ylabel("Probability of Death")
         plt.title(f"{distance_text}\nProbably of Number of Battles for Soldier to Kill a Robot\n{r_deaths:.1f}% Mean: {r_mean:.2f} var: {r_var:.2f}")
-        plt.savefig(f"./Graph_Output/{distance_text} Robot.png", dpi=300, bbox_inches='tight')
+        plt.savefig(f"Graph_Output\\{distance_text}_Robot.png", dpi=300, bbox_inches='tight')
         plt.clf()
 #       plt.show()
         soldier_bars_tmp = {}
@@ -235,7 +235,7 @@ def main() -> None:
         plt.xlabel("Battles")
         plt.ylabel("Probability of Death")
         plt.title(f"{distance_text}\nProbably of Number of Battles for Robot to Kill a Soldier\n{s_deaths:.1f}% Mean: {s_mean:.2f} var: {s_var:.2f}")
-        plt.savefig(f"./Graph_Output/{distance_text} Soldier.png", dpi=300, bbox_inches='tight')
+        plt.savefig(f"Graph_Output\\{distance_text}_Soldier.png", dpi=300, bbox_inches='tight')
         plt.clf()
 #       plt.show()
         print(" ")
